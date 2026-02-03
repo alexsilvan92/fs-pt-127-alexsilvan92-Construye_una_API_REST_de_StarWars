@@ -163,6 +163,31 @@ def get_character_by_name(name):
     return character_to_json, 200
 
 
+@app.route('/characters', methods=['POST'])
+def create_character():
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    required_fields = ['name']
+    for field in required_fields:
+        if field not in body or not body[field]:
+            abort(422, description=f"'{field}' is required")
+    existing_name = Character.query.filter_by(name=body['name']).first()
+    if existing_name:
+        abort(409, description="Name already exists")
+    try:
+        new_character = Character(name=body["name"],
+                        gender=body.get("gender"),
+                        height=body.get("height"),
+                        mass=body.get("mass"))
+        db.session.add(new_character)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify(new_character.serialize()), 201
+
+
 
 # ==========================
 #     ENDPOINTS DE PLANET
@@ -190,6 +215,31 @@ def get_planet_by_name(name):
         abort(404, description="Planet not found")
     planet_to_json = jsonify(planet.serialize())
     return planet_to_json, 200
+
+
+@app.route('/planets', methods=['POST'])
+def create_planet():
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    required_fields = ['name']
+    for field in required_fields:
+        if field not in body or not body[field]:
+            abort(422, description=f"'{field}' is required")
+    existing_name = Planet.query.filter_by(name=body['name']).first()
+    if existing_name:
+        abort(409, description="Name already exists")
+    try:
+        new_planet = Planet(name=body["name"],
+                        climate=body.get("climate"),
+                        population=body.get("population"),
+                        terrain=body.get("terrain"))
+        db.session.add(new_planet)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify(new_planet.serialize()), 201
 
 
 
@@ -221,6 +271,31 @@ def get_vehicle_by_name(name):
     return vehicle_to_json, 200
 
 
+@app.route('/vehicles', methods=['POST'])
+def create_vehicle():
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    required_fields = ['name']
+    for field in required_fields:
+        if field not in body or not body[field]:
+            abort(422, description=f"'{field}' is required")
+    existing_name = Vehicle.query.filter_by(name=body['name']).first()
+    if existing_name:
+        abort(409, description="Name already exists")
+    try:
+        new_vehicle = Vehicle(name=body["name"],
+                        cargo_capacity=body.get("cargo_capacity"),
+                        length=body.get("length"),
+                        model=body.get("model"))
+        db.session.add(new_vehicle)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error :)")
+    return jsonify(new_vehicle.serialize()), 201
+
+
 
 # ==========================
 #     ENDPOINTS DE FAVORITE
@@ -235,15 +310,6 @@ def get_all_favorites():
 @app.route('/favorites/<int:favorite_id>', methods=['GET'])
 def get_favorite_by_id(favorite_id):
     favorite = Favorite.query.get(favorite_id)
-    if favorite is None:
-        abort(404, description="Favorite not found")
-    favorite_to_json = jsonify(favorite.serialize())
-    return favorite_to_json, 200
-
-
-@app.route('/favorites/<string:name>', methods=['GET'])
-def get_favorite_by_name(name):
-    favorite = Favorite.query.filter_by(name=name).first()
     if favorite is None:
         abort(404, description="Favorite not found")
     favorite_to_json = jsonify(favorite.serialize())
