@@ -134,15 +134,34 @@ def delete_user(user_id):
     return jsonify({"message": f"User with ID {user_id} has been deleted"}), 200
 
 
+
 # ==========================
 #     ENDPOINTS DE CHARACTER
 # ==========================
 @app.route('/characters', methods=['GET'])
 def get_all_characters():
     characters = Character.query.all()
-    characters_to_json = jsonify([character.serialize()
-                                 for character in characters])
+    characters_to_json = jsonify([character.serialize() for character in characters])
     return characters_to_json, 200
+
+
+@app.route('/characters/<int:id>', methods=['GET'])
+def get_character_by_id(id):
+    character = Character.query.get(id)
+    if character is None:
+        abort(404, description="Character not found")
+    character_to_json = jsonify(character.serialize())
+    return character_to_json, 200
+
+
+@app.route('/characters/<string:name>', methods=['GET'])
+def get_character_by_name(name):
+    character = Character.query.filter_by(name=name).first()
+    if character is None:
+        abort(404, description="Character not found")
+    character_to_json = jsonify(character.serialize())
+    return character_to_json, 200
+
 
 
 # ==========================
@@ -155,6 +174,25 @@ def get_all_planets():
     return planets_to_json, 200
 
 
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def get_planet_by_id(planet_id):
+    planet = Planet.query.get(planet_id)
+    if planet is None:
+        abort(404, description="Planet not found")
+    planet_to_json = jsonify(planet.serialize())
+    return planet_to_json, 200
+
+
+@app.route('/planets/<string:name>', methods=['GET'])
+def get_planet_by_name(name):
+    planet = Planet.query.filter_by(name=name).first()
+    if planet is None:
+        abort(404, description="Planet not found")
+    planet_to_json = jsonify(planet.serialize())
+    return planet_to_json, 200
+
+
+
 # ==========================
 #     ENDPOINTS DE VEHICLE
 # ==========================
@@ -165,6 +203,25 @@ def get_all_vehicles():
     return vehicles_to_json, 200
 
 
+@app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
+def get_vehicle_by_id(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle is None:
+        abort(404, description="Vehicle not found")
+    vehicle_to_json = jsonify(vehicle.serialize())
+    return vehicle_to_json, 200
+
+
+@app.route('/vehicles/<string:name>', methods=['GET'])
+def get_vehicle_by_name(name):
+    vehicle = Vehicle.query.filter_by(name=name).first()
+    if vehicle is None:
+        abort(404, description="Vehicle not found")
+    vehicle_to_json = jsonify(vehicle.serialize())
+    return vehicle_to_json, 200
+
+
+
 # ==========================
 #     ENDPOINTS DE FAVORITE
 # ==========================
@@ -173,6 +230,25 @@ def get_all_favorites():
     favorites = Favorite.query.all()
     favorites_to_json = jsonify([favorite.serialize() for favorite in favorites])
     return favorites_to_json, 200
+
+
+@app.route('/favorites/<int:favorite_id>', methods=['GET'])
+def get_favorite_by_id(favorite_id):
+    favorite = Favorite.query.get(favorite_id)
+    if favorite is None:
+        abort(404, description="Favorite not found")
+    favorite_to_json = jsonify(favorite.serialize())
+    return favorite_to_json, 200
+
+
+@app.route('/favorites/<string:name>', methods=['GET'])
+def get_favorite_by_name(name):
+    favorite = Favorite.query.filter_by(name=name).first()
+    if favorite is None:
+        abort(404, description="Favorite not found")
+    favorite_to_json = jsonify(favorite.serialize())
+    return favorite_to_json, 200
+
 
 
 # this only runs if `$ python src/app.py` is executed
