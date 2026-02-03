@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import Character, Planet, db, User, Vehicle, Favorite
 # from models import Person
 
 app = Flask(__name__)
@@ -44,6 +44,8 @@ def sitemap():
 # ==========================
 #     ENDPOINTS DE USER
 # ==========================
+
+
 @app.route('/users', methods=['GET'])
 def get_all_users():
     users = User.query.all()
@@ -135,23 +137,42 @@ def delete_user(user_id):
 # ==========================
 #     ENDPOINTS DE CHARACTER
 # ==========================
+@app.route('/characters', methods=['GET'])
+def get_all_characters():
+    characters = Character.query.all()
+    characters_to_json = jsonify([character.serialize()
+                                 for character in characters])
+    return characters_to_json, 200
 
 
 # ==========================
 #     ENDPOINTS DE PLANET
 # ==========================
+@app.route('/planets', methods=['GET'])
+def get_all_planets():
+    planets = Planet.query.all()
+    planets_to_json = jsonify([planet.serialize() for planet in planets])
+    return planets_to_json, 200
 
 
 # ==========================
 #     ENDPOINTS DE VEHICLE
 # ==========================
+@app.route('/vehicles', methods=['GET'])
+def get_all_vehicles():
+    vehicles = Vehicle.query.all()
+    vehicles_to_json = jsonify([vehicle.serialize() for vehicle in vehicles])
+    return vehicles_to_json, 200
 
 
 # ==========================
 #     ENDPOINTS DE FAVORITE
 # ==========================
-
-
+@app.route('/favorites', methods=['GET'])
+def get_all_favorites():
+    favorites = Favorite.query.all()
+    favorites_to_json = jsonify([favorite.serialize() for favorite in favorites])
+    return favorites_to_json, 200
 
 
 # this only runs if `$ python src/app.py` is executed
