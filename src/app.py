@@ -44,8 +44,6 @@ def sitemap():
 # ==========================
 #     ENDPOINTS DE USER
 # ==========================
-
-
 @app.route('/users', methods=['GET'])
 def get_all_users():
     users = User.query.all()
@@ -62,7 +60,7 @@ def get_user_by_id(user_id):
     return user_to_json, 200
 
 
-@app.route('/users-by-email/<string:email>', methods=['GET'])
+@app.route('/users/<string:email>', methods=['GET'])
 def get_user_by_email(email):
     user = User.query.filter_by(email=email).first()
     if user is None:
@@ -421,13 +419,69 @@ def get_all_favorites():
     return favorites_to_json, 200
 
 
-@app.route('/favorites/<int:favorite_id>', methods=['GET'])
-def get_favorite_by_id(favorite_id):
+@app.route('/users/<int:user_id>/favorites', methods=['GET'])
+def get_user_favorites(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        abort(404, description="User not found")
+    favorites = Favorite.query.filter_by(user_id=user_id).all()
+    favorites_to_json = jsonify([favorite.serialize() for favorite in favorites])
+    return favorites_to_json, 200
+
+
+@app.route('/users/<int:user_id>/favorites', methods=['POST'])
+def add_favorite(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        abort(404, description="User not found")
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    planet_id = body.get("planet_id")
+    character_id = body.get("character_id")
+    vehicle_id = body.get("vehicle_id")
+    if sum(x is not None for x in [planet_id, character_id, vehicle_id]) != 1:
+        abort(422, description="Exactly one of 'planet_id', 'character_id', or 'vehicle_id' must be provided")
+    filters = {"user_id": user_id}
+    if planet_id is not None:
+        filters["planet_id"] = planet_id
+    elif character_id is not None:
+        filters["character_id"] = character_id
+    else:
+        filters["vehicle_id"] = vehicle_id
+    existing_favorite = Favorite.query.filter_by(**filters).first()
+    if existing_favorite:
+        abort(409, description="This item is already in user favorites")
+    try:
+        new_favorite = Favorite(
+            user_id=user_id,
+            planet_id=planet_id,
+            character_id=character_id,
+            vehicle_id=vehicle_id
+        )
+        db.session.add(new_favorite)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify(new_favorite.serialize()), 201
+
+
+@app.route('/users/<int:user_id>/favorites/<int:favorite_id>', methods=['DELETE'])
+def delete_favorite(user_id, favorite_id):
+    user = User.query.get(user_id)
+    if user is None:
+        abort(404, description="User not found")
     favorite = Favorite.query.get(favorite_id)
-    if favorite is None:
-        abort(404, description="Favorite not found")
-    favorite_to_json = jsonify(favorite.serialize())
-    return favorite_to_json, 200
+    if favorite is None or favorite.user_id != user_id:
+        abort(404, description="Favorite not found for this user")
+    try:
+        db.session.delete(favorite)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify({"message": f"Favorite with ID {favorite_id} has been deleted"}), 200
 
 
 
