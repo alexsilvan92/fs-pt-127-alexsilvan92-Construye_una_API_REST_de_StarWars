@@ -86,8 +86,8 @@ def create_user():
     try:
         new_user = User(email=body["email"],
                         password=body["password"],
-                        first_name=body.get("first_name", ""),
-                        last_name=body.get("last_name", ""))
+                        first_name=body.get("first_name"),
+                        last_name=body.get("last_name"))
         db.session.add(new_user)
         db.session.commit()
     except Exception:
@@ -111,8 +111,8 @@ def update_user(user_id):
     try:
         user.email = body['email']
         user.password = body['password']
-        user.first_name = body.get("first_name", "")
-        user.last_name = body.get("last_name", "")
+        user.first_name = body.get("first_name")
+        user.last_name = body.get("last_name")
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -188,6 +188,44 @@ def create_character():
     return jsonify(new_character.serialize()), 201
 
 
+@app.route('/characters/<int:character_id>', methods=['PUT'])
+def update_character(character_id):
+    character = Character.query.get(character_id)
+    if character is None:
+        abort(404, description=f"Character with ID {character_id} not found")
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    if 'name' in body and body['name'] != character.name:
+        existing_name = Character.query.filter_by(name=body['name']).first()
+        if existing_name:
+            abort(409, description="Name already exists")
+    try:
+        character.name = body['name']
+        character.gender = body.get('gender')
+        character.height = body.get("height")
+        character.mass = body.get("mass")
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify(character.serialize()), 200
+
+
+@app.route('/characters/<int:character_id>', methods=['DELETE'])
+def delete_character(character_id):
+    character = Character.query.get(character_id)
+    if character is None:
+        abort(404, description=f"Character with ID {character_id} not found")
+    try:
+        db.session.delete(character)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify({"message": f"Character with ID {character_id} has been deleted"}), 200
+
+
 
 # ==========================
 #     ENDPOINTS DE PLANET
@@ -242,6 +280,44 @@ def create_planet():
     return jsonify(new_planet.serialize()), 201
 
 
+@app.route('/planets/<int:planet_id>', methods=['PUT'])
+def update_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if planet is None:
+        abort(404, description=f"Planet with ID {planet_id} not found")
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    if 'name' in body and body['name'] != planet.name:
+        existing_name = Planet.query.filter_by(name=body['name']).first()
+        if existing_name:
+            abort(409, description="Name already exists")
+    try:
+        planet.name = body['name']
+        planet.climate = body.get("climate")
+        planet.population = body.get("population")
+        planet.terrain = body.get("terrain")
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify(planet.serialize()), 200
+
+
+@app.route('/planets/<int:planet_id>', methods=['DELETE'])
+def delete_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if planet is None:
+        abort(404, description=f"Planet with ID {planet_id} not found")
+    try:
+        db.session.delete(planet)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify({"message": f"Planet with ID {planet_id} has been deleted"}), 200
+
+
 
 # ==========================
 #     ENDPOINTS DE VEHICLE
@@ -294,6 +370,44 @@ def create_vehicle():
         db.session.rollback()
         abort(500, description="Internal Server Error :)")
     return jsonify(new_vehicle.serialize()), 201
+
+
+@app.route('/vehicles/<int:vehicle_id>', methods=['PUT'])
+def update_vehicle(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle is None:
+        abort(404, description=f"Vehicle with ID {vehicle_id} not found")
+    body = request.get_json()
+    if not body:
+        abort(400, description="Request body must be JSON")
+    if 'name' in body and body['name'] != vehicle.name:
+        existing_name = Vehicle.query.filter_by(name=body['name']).first()
+        if existing_name:
+            abort(409, description="Name already exists")
+    try:
+        vehicle.name = body['name']
+        vehicle.cargo_capacity = body.get("cargo_capacity")
+        vehicle.length = body.get("length")
+        vehicle.model = body.get("model")
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify(vehicle.serialize()), 200
+
+
+@app.route('/vehicles/<int:vehicle_id>', methods=['DELETE'])
+def delete_vehicle(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle is None:
+        abort(404, description=f"Vehicle with ID {vehicle_id} not found")
+    try:
+        db.session.delete(vehicle)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        abort(500, description="Internal Server Error")
+    return jsonify({"message": f"Vehicle with ID {vehicle_id} has been deleted"}), 200
 
 
 
